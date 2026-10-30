@@ -27,7 +27,7 @@ public class EquipmentService {
 
         // Se ja existe retorna erro
         if (equipments.existsByCodeIgnoreCase(code)) {
-            throw new BusinessRuleException("Equipamento já cadastrado!" + code);
+            throw new BusinessRuleException("Equipamento já cadastrado: " + code);
         }
 
         // Horímetro vazio vira zero
@@ -46,5 +46,24 @@ public class EquipmentService {
     @Transactional(readOnly = true)
     public Equipment findById(Long id) {
         return equipments.findById(id).orElseThrow(() -> new ResourceNotFoundException("Equipamento não encontrado: " + id));
+    }
+
+    @Transactional
+    public Equipment update(Long id, Equipment data) {
+
+        // Busca o equipamento atual
+        Equipment current = findById(id);
+
+        String newCode = data.getCode().trim();
+
+        // So valida duplicidade se o codigo mudou
+        if (!current.getCode().equalsIgnoreCase(newCode) && equipments.existsByCodeIgnoreCase(newCode)) {
+            throw new BusinessRuleException("Ja existe um equipamento com o codigo " + newCode);
+        }
+
+        current.setCode(newCode);
+        current.setName(data.getName());
+        current.setCategory(data.getCategory());
+        return equipments.save(current);
     }
 }
