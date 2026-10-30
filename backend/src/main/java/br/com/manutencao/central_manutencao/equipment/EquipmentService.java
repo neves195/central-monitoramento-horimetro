@@ -1,11 +1,13 @@
 package br.com.manutencao.central_manutencao.equipment;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.manutencao.central_manutencao.common.BusinessRuleException;
+import br.com.manutencao.central_manutencao.common.ResourceNotFoundException;
 
 @Service
 public class EquipmentService {
@@ -34,5 +36,15 @@ public class EquipmentService {
         }
 
         return equipments.save(equipment);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Equipment> list() {
+        return equipments.findByActiveTrue();
+    }
+
+    @Transactional(readOnly = true)
+    public Equipment findById(Long id) {
+        return equipments.findById(id).orElseThrow(() -> new ResourceNotFoundException("Equipamento não encontrado: " + id));
     }
 }
