@@ -3,6 +3,7 @@ package br.com.manutencao.central_manutencao.equipment;
 import java.math.BigDecimal;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.com.manutencao.central_manutencao.common.BusinessRuleException;
 
@@ -15,10 +16,7 @@ public class EquipmentService {
         this.equipments = equipments;
     }
 
-    //  Tirar os espaços das pontas do código (trim).
-    // Perguntar se já existe equipamento com esse código; se existir, lançar BusinessRuleException com uma mensagem clara.
-    // Se o horímetro atual vier vazio, usar zero.
-    //  Gravar com save e devolver o resultado.
+    @Transactional
     public Equipment create(Equipment equipment) {
 
         // Tira os espaços das pontas do código
@@ -27,7 +25,7 @@ public class EquipmentService {
 
         // Se ja existe retorna erro
         if (equipments.existsByCodeIgnoreCase(code)) {
-            throw new BusinessRuleException("Equipamento já cadastrado!");
+            throw new BusinessRuleException("Equipamento já cadastrado!" + code);
         }
 
         // Horímetro vazio vira zero
