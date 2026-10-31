@@ -66,4 +66,10 @@ public class EquipmentService {
         current.setCategory(data.getCategory());
         return equipments.save(current);
     }
+
+    @Transactional
+    public void deactivate(Long id){
+        Equipment current = findById(id);
+        current.setActive(false);
+    }
 }
