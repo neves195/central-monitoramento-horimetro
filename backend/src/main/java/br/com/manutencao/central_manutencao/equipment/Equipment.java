@@ -106,7 +106,7 @@ public class Equipment {
         return createdAt;
     }
 
-    // ---- CICLO DE VIDA ----
+    // ---- CICLO DE VIDA ----H
 
     // Roda automaticamente antes de gravar pela primeira vez.
     // Garante que created_at nunca fique vazio, não importa quem criou o equipamento.
