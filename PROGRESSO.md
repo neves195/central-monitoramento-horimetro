@@ -88,3 +88,10 @@ Todos foram testados com `curl` em uma instância temporária.
 - Concluir uma manutenção ligada a um plano zera a contagem do plano (`lastMaintenanceHours` = horas da manutenção) na MESMA transação. Por isso o plano `OVERDUE` volta a `ON_TIME` sem ninguém recalcular nada.
 - Valores padrão ao concluir: data = hoje, horas = horímetro atual. Horas maiores que o horímetro atual são recusadas (409). Manutenção sem `planId` é avulsa e não mexe em nenhum plano.
 - Ao agendar com plano, o plano precisa ser do mesmo equipamento e estar ativo (409 se não). 14 testes de service cobrem as regras, incluindo "concluir zera o plano".
+
+### Etapa 4: alertas (`alert/`)
+- Rota única: `GET /api/alerts` (com `?status=OVERDUE` ou `UPCOMING` opcional). Devolve os planos que pedem atenção, com os dados do equipamento junto, para a tela montar o painel sem outras chamadas.
+- Alerta NÃO é tabela nem entidade: é a consulta "planos ativos de equipamentos ativos" filtrada pelo status calculado na hora (`OVERDUE` ou `UPCOMING`). Como o status nunca é gravado, o alerta aparece e some sozinho conforme o horímetro e as manutenções mudam.
+- Ordenação por urgência: menor restante primeiro (o mais negativo, ou seja o mais atrasado, fica no topo).
+- A consulta usa `join fetch` do equipamento no repository para evitar o problema N+1 (uma consulta extra por plano).
+- Equipamento ou plano desativado nunca gera alerta. `status=ON_TIME` é aceito mas devolve lista vazia, pois em dia não é alerta. 4 testes de service cobrem filtro, ordem e exclusões.
