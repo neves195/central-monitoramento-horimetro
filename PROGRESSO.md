@@ -74,3 +74,10 @@ Todos foram testados com `curl` em uma instância temporária.
 - Ao gravar, o `equipments.current_hours` é atualizado na MESMA transação (`@Transactional`): ou grava os dois ou nenhum. Isso evita leitura salva com equipamento desatualizado.
 - Equipamento desativado não aceita leitura (409). Leituras nunca são alteradas nem apagadas, pois são o histórico (a tabela nem tem `active`).
 - Testes do service com Mockito (`HourMeterReadingServiceTest`) cobrem: atualiza o horímetro, aceita igual, rejeita menor, rejeita equipamento inativo.
+
+### Etapa 2: planos de manutenção (`plan/`)
+- Rotas: `POST/GET /api/equipments/{equipmentId}/plans` (criar e listar ativos) e `GET/PUT/DELETE /api/plans/{id}` (DELETE desativa, 204).
+- Vencimento, restante e status ficam em métodos da entidade (`nextDueHours()`, `remainingHours()`, `status()`) e NUNCA no banco. Assim o status acompanha o horímetro sem precisar atualizar nada; a regra fica num só lugar e é testável sem Spring.
+- Regra do status: restante <= 0 -> `OVERDUE`; restante <= `warningHours` -> `UPCOMING`; senão `ON_TIME`. Os limites exatos (0 e igual ao aviso) têm teste.
+- Plano sem `lastMaintenanceHours` assume o horímetro atual do equipamento. Informar uma última manutenção maior que o horímetro atual é recusado (409), pois não existe manutenção "no futuro" do horímetro.
+- No `update`, `lastMaintenanceHours` vazio mantém o valor atual; o equipamento de um plano nunca muda (vem da URL só na criação).
