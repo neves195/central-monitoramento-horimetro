@@ -65,3 +65,12 @@ Todos foram testados com `curl` em uma instância temporária.
 - Getter de `boolean` é `isX()`, e `camelCase` importa (`isActive`, não `IsActive`).
 - Passar o valor direto (`false`) em vez de chamar métodos inexistentes.
 - Ler a mensagem `cannot find symbol` do compilador.
+
+## Etapas concluídas (resumo para estudar)
+
+### Etapa 1: leituras de horímetro (`reading/`)
+- Rotas `POST` e `GET /api/equipments/{equipmentId}/readings`: o equipamento vem da URL, porque a leitura só existe dentro de um equipamento.
+- Regra central: a leitura não pode ser menor que o horímetro atual (igual é aceito). Violação -> `BusinessRuleException` (409).
+- Ao gravar, o `equipments.current_hours` é atualizado na MESMA transação (`@Transactional`): ou grava os dois ou nenhum. Isso evita leitura salva com equipamento desatualizado.
+- Equipamento desativado não aceita leitura (409). Leituras nunca são alteradas nem apagadas, pois são o histórico (a tabela nem tem `active`).
+- Testes do service com Mockito (`HourMeterReadingServiceTest`) cobrem: atualiza o horímetro, aceita igual, rejeita menor, rejeita equipamento inativo.
