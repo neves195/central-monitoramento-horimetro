@@ -81,3 +81,10 @@ Todos foram testados com `curl` em uma instância temporária.
 - Regra do status: restante <= 0 -> `OVERDUE`; restante <= `warningHours` -> `UPCOMING`; senão `ON_TIME`. Os limites exatos (0 e igual ao aviso) têm teste.
 - Plano sem `lastMaintenanceHours` assume o horímetro atual do equipamento. Informar uma última manutenção maior que o horímetro atual é recusado (409), pois não existe manutenção "no futuro" do horímetro.
 - No `update`, `lastMaintenanceHours` vazio mantém o valor atual; o equipamento de um plano nunca muda (vem da URL só na criação).
+
+### Etapa 3: manutenções (`maintenance/`)
+- Rotas: `POST/GET /api/equipments/{equipmentId}/maintenances` (agendar; listar com `?status=` opcional), `GET /api/maintenances/{id}`, `POST /api/maintenances/{id}/complete` e `POST /api/maintenances/{id}/cancel`.
+- É uma máquina de estados simples: nasce `SCHEDULED` e só dela pode ir para `COMPLETED` ou `CANCELED`. Qualquer outra transição é 409. Não há DELETE: o cancelamento é o próprio status, e o histórico fica preservado (exclusão lógica).
+- Concluir uma manutenção ligada a um plano zera a contagem do plano (`lastMaintenanceHours` = horas da manutenção) na MESMA transação. Por isso o plano `OVERDUE` volta a `ON_TIME` sem ninguém recalcular nada.
+- Valores padrão ao concluir: data = hoje, horas = horímetro atual. Horas maiores que o horímetro atual são recusadas (409). Manutenção sem `planId` é avulsa e não mexe em nenhum plano.
+- Ao agendar com plano, o plano precisa ser do mesmo equipamento e estar ativo (409 se não). 14 testes de service cobrem as regras, incluindo "concluir zera o plano".
