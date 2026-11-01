@@ -53,10 +53,12 @@ Todos foram testados com `curl` em uma instância temporária.
 
 ## O que falta
 
-1. Testes do `EquipmentService` (o plano prevê logo depois da API, num bloco só).
-2. Os outros requisitos da API (são 6 no total, só equipamento está pronto).
-3. `reactivate(Long id)`, o inverso do `deactivate`, sugerido como exercício e ainda não feito.
-4. Decidir se `findById` deve esconder equipamentos desativados.
+A API está completa (equipamentos, leituras, planos, manutenções, alertas) e coberta por 48 testes de service/entidade (`./mvnw test`). Pendências:
+
+1. `reactivate(Long id)`, o inverso do `deactivate`, sugerido como exercício para João e ainda não feito. Não existe rota para reativar equipamento nem plano.
+2. Decidir se `findById` deve esconder equipamentos desativados (continua em aberto).
+3. Nenhum teste de controller/integração (MockMvc): as rotas foram verificadas só com `curl`. Os testes atuais cobrem as regras de negócio, que é onde está o risco.
+4. Falta um README de uso da API para a entrega/entrevista, com a lista de rotas e exemplos de `curl`.
 
 ## Erros que João já treinou (para não repetir a explicação do zero)
 
@@ -95,3 +97,8 @@ Todos foram testados com `curl` em uma instância temporária.
 - Ordenação por urgência: menor restante primeiro (o mais negativo, ou seja o mais atrasado, fica no topo).
 - A consulta usa `join fetch` do equipamento no repository para evitar o problema N+1 (uma consulta extra por plano).
 - Equipamento ou plano desativado nunca gera alerta. `status=ON_TIME` é aceito mas devolve lista vazia, pois em dia não é alerta. 4 testes de service cobrem filtro, ordem e exclusões.
+
+### Etapa 5: testes do `EquipmentService`
+- 11 testes com Mockito (o repository é simulado, sem banco): criar (tira espaços do código, horímetro vazio vira 0, código duplicado é 409), listar só ativos, `findById` 404, atualizar (duplicidade só quando o código muda de verdade, e o horímetro nunca muda pelo `update`) e desativar (marca `active=false` e nunca chama `delete`).
+- Por que Mockito aqui: o service só tem regra de negócio, então o teste fica rápido (milissegundos) e falha apontando exatamente a regra quebrada. O banco real fica coberto pelo `contextLoads`, que sobe o Spring e aplica as migrations do Flyway.
+- Resultado final da sessão: `./mvnw test` com 48 testes verdes; `java.version` continua 21 no `pom.xml`.
