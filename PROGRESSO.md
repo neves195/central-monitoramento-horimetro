@@ -102,3 +102,36 @@ A API está completa (equipamentos, leituras, planos, manutenções, alertas) e 
 - 11 testes com Mockito (o repository é simulado, sem banco): criar (tira espaços do código, horímetro vazio vira 0, código duplicado é 409), listar só ativos, `findById` 404, atualizar (duplicidade só quando o código muda de verdade, e o horímetro nunca muda pelo `update`) e desativar (marca `active=false` e nunca chama `delete`).
 - Por que Mockito aqui: o service só tem regra de negócio, então o teste fica rápido (milissegundos) e falha apontando exatamente a regra quebrada. O banco real fica coberto pelo `contextLoads`, que sobe o Spring e aplica as migrations do Flyway.
 - Resultado final da sessão: `./mvnw test` com 48 testes verdes; `java.version` continua 21 no `pom.xml`.
+
+## Segurança (HTTP Basic + papéis): onde paramos em 01/11/2026
+
+Modo de trabalho desta fase: João escreve o código, o Claude guia (conceito curto, pistas, exemplos de outro assunto, um passo por vez) e revisa sem reescrever tudo.
+
+### Pronto (arquivo `security/SecurityConfig.java`)
+- Passos 1 e 2 feitos por João: starters de security (e de teste) no `pom.xml`; `PasswordEncoder` BCrypt; usuários em memória `admin` (ADMIN) e `viewer` (VIEWER), com senhas lidas do `application.properties` via `@Value` e sempre passando por `encode(...)`.
+- Passo 3 foi completado pelo Claude a pedido de João, no fim do dia, para o projeto não ficar sem compilar. João deve ler o método `securityFilterChain` e conseguir explicar cada linha (estão comentadas).
+- `GET /api/**` -> ADMIN e VIEWER; `POST`, `PUT`, `DELETE` -> só ADMIN; qualquer outra rota exige login. Stateless, CSRF desligado, `httpBasic`.
+- H2 console: cadeia separada, só com o perfil `dev` (`./mvnw spring-boot:run -Dspring-boot.run.profiles=dev`). Sem o perfil, `/h2-console` exige login.
+
+### Senhas de teste (só desenvolvimento; ficam no `application.properties`)
+| Usuário | Senha | Papel |
+|---|---|---|
+| admin | admin123 | ADMIN |
+| viewer | viewer123 | VIEWER |
+
+Em produção essas senhas viriam de variáveis de ambiente, nunca do repositório.
+
+### Verificado com curl (instância própria)
+sem login 401; senha errada 401; VIEWER GET 200; VIEWER POST/DELETE 403; ADMIN POST 201, GET 200, PUT 200, DELETE 204; validação 400 e não encontrado 404 continuam no formato do `GlobalExceptionHandler`; H2 só abre com o perfil dev. `./mvnw test`: os 48 testes continuam passando.
+
+### O que falta (próximos passos, com o conceito de cada um)
+4. **401 e 403 em JSON** no formato `{status, error, messages[], timestamp}`. Hoje o 401 vem com corpo vazio e o 403 no formato padrão do Spring. Conceito: esses erros acontecem no filtro, ANTES de chegar no controller, por isso o `@RestControllerAdvice` não os pega. A solução são dois ganchos no `SecurityFilterChain`: `AuthenticationEntryPoint` (401, "quem é você?") e `AccessDeniedHandler` (403, "você não pode"). Dica: reaproveitar o record `GlobalExceptionHandler.ApiError`.
+5. **Testes de segurança** com MockMvc e `@WithMockUser` (starter `security-test` já está no pom): sem login = 401, VIEWER fazendo POST = 403, ADMIN fazendo POST = 2xx. Conceito: teste de fatia web (`@WebMvcTest` ou `@SpringBootTest` + `@AutoConfigureMockMvc`) sobe só o necessário.
+6. **Commit** `feat: adiciona seguranca com HTTP Basic e papeis` e resumo final aqui.
+
+### Pontos para explicar na entrevista
+- Autenticação (quem é você, falha = 401) vs autorização (o que pode fazer, falha = 403).
+- BCrypt: hash sem volta, com salt aleatório, lento de propósito; a senha nunca fica em texto puro.
+- API stateless: nada de sessão no servidor, cada requisição leva as credenciais; por isso CSRF fica desligado (CSRF explora cookie de sessão).
+- A ordem das regras no `authorizeHttpRequests` importa: vale a primeira que combina.
+- Limite do HTTP Basic: manda usuário e senha em toda requisição (precisa de HTTPS) e os usuários estão em memória. O plano prevê trocar por JWT depois.
