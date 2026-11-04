@@ -78,4 +78,17 @@ public class MaintenancePlanService {
         MaintenancePlan current = findById(id);
         current.setActive(false);
     }
+
+    // Plano ativo em equipamento desativado não faz sentido: mesma regra do create
+    @Transactional
+    public MaintenancePlan reactivate(Long id) {
+        MaintenancePlan current = findById(id);
+
+        if (!current.getEquipment().isActive()) {
+            throw new BusinessRuleException("Equipamento desativado: " + current.getEquipment().getCode());
+        }
+
+        current.setActive(true);
+        return current;
+    }
 }

@@ -46,7 +46,7 @@ Todos foram testados com `curl` em uma instância temporária.
 ## Decisões e observações
 
 - O DTO separa o contrato da API do modelo do banco: o cliente não controla id, active nem currentHours.
-- `findById` do service **não** filtra por `active`, então um equipamento desativado ainda pode ser buscado por id. Decisão em aberto.
+- `findById` do service **não** filtra por `active`, então um equipamento desativado ainda pode ser buscado por id. Decisão tomada: manter assim (veja o item 4 da entrega final).
 - O `deactivate` não chama `save`, porque o método é `@Transactional` e o JPA grava a mudança sozinho. O `update` chama `save` por padrão do código.
 - O VS Code já trocou `java.version` no `pom.xml` para 25 por conta própria. O JDK instalado é o 21, então isso quebra a compilação (`release version 25 not supported`). Se acontecer de novo, voltar para 21.
 - `ddl-auto=validate` com H2 em memória: as tabelas vêm das migrations do Flyway. O banco zera a cada reinício.
@@ -153,3 +153,10 @@ João pediu para esta fase ser feita de ponta a ponta, sem o modo guiado. Regra:
 - Por que `httpBasic(...)` e não `@WithMockUser` aqui: `@WithMockUser` pula a autenticação; `httpBasic` passa pelo BCrypt com a senha real. `@WithMockUser` fica para o item 6, onde o foco é a regra de negócio.
 - `@Transactional` na classe desfaz o que cada teste grava, pois o banco H2 é compartilhado entre os testes do mesmo contexto.
 - Os testes conferem o corpo do erro, não só o status: o formato `{status, error, messages[], timestamp}` faz parte do contrato da API.
+
+### Item 3: reativar equipamento e plano
+- O que foi feito: `reactivate` no `EquipmentService` e no `MaintenancePlanService`, com as rotas `POST /api/equipments/{id}/reactivate` e `POST /api/plans/{id}/reactivate` e 6 testes de service.
+- Por que POST e não PUT: é uma ação sobre o recurso, igual a `complete` e `cancel`. Só ADMIN, sem código novo: a regra de POST em `/api/**` do `SecurityConfig` já cobre.
+- Decisão: reativar o que já está ativo não é erro (idempotente), o mesmo comportamento do `deactivate`.
+- Decisão: plano de equipamento desativado não reativa (409), a mesma regra do `create`. Reativar um equipamento NÃO reativa os planos dele: o plano pode ter sido desativado antes, por outro motivo, então a escolha fica explícita.
+- Como `findById` não filtra `active`, a reativação não precisou de nenhuma consulta nova.

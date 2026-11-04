@@ -59,6 +59,12 @@ public class MaintenancePlanController {
         return ResponseEntity.noContent().build();
     }
 
+    // POST /api/plans/{id}/reactivate -> só ADMIN; 409 se o equipamento estiver desativado
+    @PostMapping("/plans/{id}/reactivate")
+    public MaintenancePlanResponse reactivate(@PathVariable Long id) {
+        return MaintenancePlanResponse.from(service.reactivate(id));
+    }
+
     // O equipamento vem do caminho da URL, não do corpo
     private MaintenancePlan toEntity(MaintenancePlanRequest request) {
         MaintenancePlan plan = new MaintenancePlan();

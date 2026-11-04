@@ -3,6 +3,7 @@ package br.com.manutencao.central_manutencao.plan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -125,5 +126,35 @@ class MaintenancePlanServiceTest {
         when(plans.findById(9L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> service.findById(9L));
+    }
+
+    @Test
+    void reactivateMarksPlanAsActive() {
+        MaintenancePlan current = data("300.0");
+        current.setEquipment(equipment);
+        current.setActive(false);
+        when(plans.findById(1L)).thenReturn(Optional.of(current));
+
+        assertTrue(service.reactivate(1L).isActive());
+    }
+
+    @Test
+    void reactivateRejectsPlanOfInactiveEquipment() {
+        equipment.setActive(false);
+        MaintenancePlan current = data("300.0");
+        current.setEquipment(equipment);
+        current.setActive(false);
+        when(plans.findById(1L)).thenReturn(Optional.of(current));
+
+        assertThrows(BusinessRuleException.class, () -> service.reactivate(1L));
+
+        assertFalse(current.isActive());
+    }
+
+    @Test
+    void reactivateThrowsWhenPlanDoesNotExist() {
+        when(plans.findById(9L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> service.reactivate(9L));
     }
 }

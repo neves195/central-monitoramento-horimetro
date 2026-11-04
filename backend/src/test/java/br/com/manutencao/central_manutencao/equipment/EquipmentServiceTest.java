@@ -3,6 +3,7 @@ package br.com.manutencao.central_manutencao.equipment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -160,5 +161,31 @@ class EquipmentServiceTest {
         when(equipments.findById(9L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> service.deactivate(9L));
+    }
+
+    // ---- reactivate ----
+
+    @Test
+    void reactivateMarksEquipmentAsActive() {
+        Equipment current = equipment("ESC-001", "Escavadeira");
+        current.setActive(false);
+        when(equipments.findById(1L)).thenReturn(Optional.of(current));
+
+        assertTrue(service.reactivate(1L).isActive());
+    }
+
+    @Test
+    void reactivateKeepsActiveEquipmentActive() {
+        Equipment current = equipment("ESC-001", "Escavadeira");
+        when(equipments.findById(1L)).thenReturn(Optional.of(current));
+
+        assertTrue(service.reactivate(1L).isActive());
+    }
+
+    @Test
+    void reactivateThrowsWhenEquipmentDoesNotExist() {
+        when(equipments.findById(9L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> service.reactivate(9L));
     }
 }

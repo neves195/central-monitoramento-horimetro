@@ -72,4 +72,12 @@ public class EquipmentService {
         Equipment current = findById(id);
         current.setActive(false);
     }
+
+    // Inverso do deactivate. Chamar em equipamento já ativo não muda nada (mesmo comportamento do deactivate)
+    @Transactional
+    public Equipment reactivate(Long id) {
+        Equipment current = findById(id);
+        current.setActive(true);
+        return current;
+    }
 }

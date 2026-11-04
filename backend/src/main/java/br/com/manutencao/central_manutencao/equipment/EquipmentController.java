@@ -58,6 +58,12 @@ public class EquipmentController {
         return ResponseEntity.noContent().build();
     }
 
+    // POST /api/equipments/{id}/reactivate -> só ADMIN (a regra de POST no SecurityConfig já cobre)
+    @PostMapping("/{id}/reactivate")
+    public EquipmentResponse reactivate(@PathVariable Long id) {
+        return EquipmentResponse.from(service.reactivate(id));
+    }
+
     // O request não carrega horímetro nem status: o serviço define os padrões
     private Equipment toEntity(EquipmentRequest request) {
         Equipment equipment = new Equipment();
