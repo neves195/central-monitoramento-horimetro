@@ -146,3 +146,10 @@ João pediu para esta fase ser feita de ponta a ponta, sem o modo guiado. Regra:
 - O entry point é registrado em dois lugares: em `exceptionHandling` (requisição sem login) e em `httpBasic` (senha errada, tratada pelo próprio filtro do Basic). Faltando um deles, um dos 401 sai vazio.
 - Reaproveita o record `ApiError`, então o cliente trata todos os erros da API do mesmo jeito. A escrita é manual (`ObjectMapper`) porque no filtro não existe a conversão automática do controller.
 - A mensagem é fixa de propósito: não diz se o erro foi usuário ou senha, para não ajudar quem tenta adivinhar credenciais.
+
+### Item 2: testes de segurança (`SecurityIntegrationTest`, 9 testes)
+- O que foi feito: MockMvc com a cadeia de filtros real cobrindo sem login 401, senha errada 401, usuário inexistente 401, VIEWER com POST/PUT/DELETE 403, VIEWER e ADMIN com GET 200, ADMIN com POST 201.
+- Por que `@SpringBootTest` + `@AutoConfigureMockMvc`: o que está em teste é a integração entre filtros, usuários e rotas; um teste que só simula o usuário não provaria a checagem da senha.
+- Por que `httpBasic(...)` e não `@WithMockUser` aqui: `@WithMockUser` pula a autenticação; `httpBasic` passa pelo BCrypt com a senha real. `@WithMockUser` fica para o item 6, onde o foco é a regra de negócio.
+- `@Transactional` na classe desfaz o que cada teste grava, pois o banco H2 é compartilhado entre os testes do mesmo contexto.
+- Os testes conferem o corpo do erro, não só o status: o formato `{status, error, messages[], timestamp}` faz parte do contrato da API.
