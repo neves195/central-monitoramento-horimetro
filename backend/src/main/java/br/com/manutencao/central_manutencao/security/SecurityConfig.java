@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -61,7 +60,7 @@ public class SecurityConfig {
     //    Pista: httpBasic + Customizer.withDefaults()
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityErrorHandler errorHandler) throws Exception {
         http
                 // Stateless: sem sessão, cada requisição leva as credenciais
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -75,7 +74,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 // Login por HTTP Basic (o que o curl -u usa)
-                .httpBasic(Customizer.withDefaults());
+                // A senha errada é tratada pelo próprio filtro do Basic, por isso ele também recebe o entry point
+                .httpBasic(basic -> basic.authenticationEntryPoint(errorHandler.authenticationEntryPoint()))
+                // Erros do filtro (antes do controller): sem isto o 401 vem vazio e o 403 no formato padrão
+                .exceptionHandling(errors -> errors
+                        .authenticationEntryPoint(errorHandler.authenticationEntryPoint())
+                        .accessDeniedHandler(errorHandler.accessDeniedHandler()));
 
         return http.build();
     }

@@ -135,3 +135,14 @@ sem login 401; senha errada 401; VIEWER GET 200; VIEWER POST/DELETE 403; ADMIN P
 - API stateless: nada de sessão no servidor, cada requisição leva as credenciais; por isso CSRF fica desligado (CSRF explora cookie de sessão).
 - A ordem das regras no `authorizeHttpRequests` importa: vale a primeira que combina.
 - Limite do HTTP Basic: manda usuário e senha em toda requisição (precisa de HTTPS) e os usuários estão em memória. O plano prevê trocar por JWT depois.
+
+## Entrega final (sessão de 03/11/2026, executada pelo Claude sem guia passo a passo)
+
+João pediu para esta fase ser feita de ponta a ponta, sem o modo guiado. Regra: em caso de dúvida, escolher a opção mais simples e registrar a decisão aqui.
+
+### Item 1: 401 e 403 em JSON (`security/SecurityErrorHandler.java`)
+- O que foi feito: `AuthenticationEntryPoint` (401) e `AccessDeniedHandler` (403) completados a partir do rascunho de João e ligados no `SecurityFilterChain`.
+- Por que não no `GlobalExceptionHandler`: esses erros nascem nos filtros, antes do controller, e o `@RestControllerAdvice` só enxerga o que passa pelo controller.
+- O entry point é registrado em dois lugares: em `exceptionHandling` (requisição sem login) e em `httpBasic` (senha errada, tratada pelo próprio filtro do Basic). Faltando um deles, um dos 401 sai vazio.
+- Reaproveita o record `ApiError`, então o cliente trata todos os erros da API do mesmo jeito. A escrita é manual (`ObjectMapper`) porque no filtro não existe a conversão automática do controller.
+- A mensagem é fixa de propósito: não diz se o erro foi usuário ou senha, para não ajudar quem tenta adivinhar credenciais.
