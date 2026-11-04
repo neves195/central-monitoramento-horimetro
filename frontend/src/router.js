@@ -4,6 +4,7 @@ import { auth } from './stores/auth'
 import AlertsView from './views/AlertsView.vue'
 import EquipmentsView from './views/EquipmentsView.vue'
 import LoginView from './views/LoginView.vue'
+import MaintenancesView from './views/MaintenancesView.vue'
 import PlansView from './views/PlansView.vue'
 import ReadingsView from './views/ReadingsView.vue'
 
@@ -13,7 +14,7 @@ const routes = [
   { path: '/equipamentos', name: 'equipments', component: EquipmentsView },
   { path: '/equipamentos/:id/leituras', name: 'readings', component: ReadingsView, props: true },
   { path: '/equipamentos/:id/planos', name: 'plans', component: PlansView, props: true },
-  { path: '/equipamentos/:id/manutencoes', name: 'maintenances', component: { render: () => null } },
+  { path: '/equipamentos/:id/manutencoes', name: 'maintenances', component: MaintenancesView, props: true },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ]
 
