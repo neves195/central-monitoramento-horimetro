@@ -2,11 +2,15 @@ import { watch } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { auth } from './stores/auth'
 import AlertsView from './views/AlertsView.vue'
+import EquipmentsView from './views/EquipmentsView.vue'
 import LoginView from './views/LoginView.vue'
 
 const routes = [
   { path: '/login', name: 'login', component: LoginView, meta: { public: true } },
   { path: '/', name: 'alerts', component: AlertsView },
+  { path: '/equipamentos', name: 'equipments', component: EquipmentsView },
+  { path: '/equipamentos/:id/leituras', name: 'readings', component: { render: () => null } },
+  { path: '/equipamentos/:id/planos', name: 'plans', component: { render: () => null } },
   { path: '/equipamentos/:id/manutencoes', name: 'maintenances', component: { render: () => null } },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ]

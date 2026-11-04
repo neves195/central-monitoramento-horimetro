@@ -7,7 +7,8 @@ import { auth, logout } from './stores/auth'
     <div class="topbar-inner">
       <span class="brand">Central de Manutenção</span>
       <nav class="mainnav" aria-label="Principal">
-        <RouterLink to="/">Painel</RouterLink>
+        <RouterLink to="/" exact-active-class="router-link-active" active-class="">Painel</RouterLink>
+        <RouterLink to="/equipamentos">Equipamentos</RouterLink>
       </nav>
       <div class="session">
         <span>{{ auth.username }}</span>
