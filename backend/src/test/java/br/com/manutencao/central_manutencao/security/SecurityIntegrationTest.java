@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -94,6 +95,31 @@ class SecurityIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON).content(EQUIPMENT_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.code").value("SEC-001"));
+    }
+
+    // ---- rota usada pela tela de login ----
+
+    @Test
+    void meReturnsUsernameAndRole() throws Exception {
+        mvc.perform(get("/api/me").with(httpBasic("viewer", "viewer123")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("viewer"))
+                .andExpect(jsonPath("$.roles[0]").value("VIEWER"));
+    }
+
+    @Test
+    void curlStyleClientReceivesBasicChallenge() throws Exception {
+        mvc.perform(get("/api/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().exists("WWW-Authenticate"));
+    }
+
+    // Sem este desvio, o navegador abriria a janela nativa de login por cima da tela do Vue
+    @Test
+    void browserAppDoesNotReceiveBasicChallenge() throws Exception {
+        mvc.perform(get("/api/me").header("X-Requested-With", "XMLHttpRequest"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().doesNotExist("WWW-Authenticate"));
     }
 
     // Mesmo formato do GlobalExceptionHandler: {status, error, messages[], timestamp}

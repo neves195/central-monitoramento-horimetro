@@ -33,7 +33,11 @@ public class SecurityErrorHandler {
     // 401: não sabemos quem é (sem credenciais ou credenciais erradas)
     AuthenticationEntryPoint authenticationEntryPoint() {
         return (request, response, authException) -> {
-            response.setHeader("WWW-Authenticate", "Basic realm=\"central-manutencao\"");
+            // Este header faz o navegador abrir a janela nativa de login. O frontend se identifica
+            // com X-Requested-With para recebê-lo sem o header e mostrar o erro na própria tela.
+            if (!"XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
+                response.setHeader("WWW-Authenticate", "Basic realm=\"central-manutencao\"");
+            }
             write(response, HttpStatus.UNAUTHORIZED, "Credenciais ausentes ou inválidas");
         };
     }
