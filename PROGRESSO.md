@@ -160,3 +160,10 @@ João pediu para esta fase ser feita de ponta a ponta, sem o modo guiado. Regra:
 - Decisão: reativar o que já está ativo não é erro (idempotente), o mesmo comportamento do `deactivate`.
 - Decisão: plano de equipamento desativado não reativa (409), a mesma regra do `create`. Reativar um equipamento NÃO reativa os planos dele: o plano pode ter sido desativado antes, por outro motivo, então a escolha fica explícita.
 - Como `findById` não filtra `active`, a reativação não precisou de nenhuma consulta nova.
+
+### Item 4: decisão do `findById`
+- Decisão: manter como está. A listagem esconde os desativados; a busca por id os devolve, com o campo `active` na resposta.
+- Por que: a reativação precisa encontrar o equipamento, e leituras e manutenções são histórico que precisa continuar acessível depois da desativação.
+- Alternativa descartada: criar um `findActiveById` e usá-lo nas rotas. Duplicaria consultas sem proteger nada a mais.
+- O risco foi tratado onde importa: leitura, plano e manutenção checam `isActive()` nas escritas (409). Esconder na leitura não seria a proteção real.
+- Registrado no comentário do método, no README e aqui.

@@ -43,6 +43,8 @@ public class EquipmentService {
         return equipments.findByActiveTrue();
     }
 
+    // Decisão de projeto: NÃO filtra por active. O reactivate precisa achar o equipamento desativado,
+    // e o histórico (leituras e manutenções) continua consultável depois da desativação.
     @Transactional(readOnly = true)
     public Equipment findById(Long id) {
         return equipments.findById(id).orElseThrow(() -> new ResourceNotFoundException("Equipamento não encontrado: " + id));
