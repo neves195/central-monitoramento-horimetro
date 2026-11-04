@@ -272,3 +272,22 @@ tbody tr:last-child td {
     font-size: 0.85rem;
   }
 }
+
+/* Formulários das telas de equipamento */
+
+.form {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.form h2 {
+  font-size: 1.05rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
