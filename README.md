@@ -233,7 +233,7 @@ npm run build
 - Os usuários são fixos e ficam em memória, com senhas no `application.properties`. Em produção viriam de variáveis de ambiente e de uma tabela.
 - O HTTP Basic só é aceitável com HTTPS, que não está configurado aqui.
 - A migration V2 roda em qualquer ambiente; veja o passo 3 da troca para PostgreSQL.
-- O frontend não tem telas para cadastrar, editar, desativar ou reativar equipamentos e planos. Essas operações existem só na API.
+- O frontend cadastra equipamentos e planos, mas não os edita, desativa nem reativa. Essas operações existem só na API.
 - A API não lista equipamentos nem planos desativados, então é preciso saber o id para reativá-los.
 - JSON malformado, parâmetro de enum inválido e rota inexistente respondem com o status certo, mas no formato padrão do Spring, não no formato único de erro.
 - O `PUT /api/plans/{id}` não valida `lastMaintenanceHours` contra o horímetro atual, ao contrário da criação.

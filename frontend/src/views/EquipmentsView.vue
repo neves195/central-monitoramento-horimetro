@@ -1,21 +1,49 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api/client'
 import { formatHours } from '../format'
+import { auth } from '../stores/auth'
 
 const equipments = ref([])
 const loading = ref(true)
-const error = ref('')
+const loadError = ref('')
 
-onMounted(async () => {
+const emptyForm = { code: '', name: '', category: '' }
+const form = reactive({ ...emptyForm })
+// Lista, e não texto único: o 400 de validação traz uma mensagem por campo
+const formErrors = ref([])
+const sending = ref(false)
+
+async function load() {
+  loadError.value = ''
   try {
     equipments.value = await api('/equipments')
   } catch (e) {
-    error.value = e.message
+    loadError.value = e.message
   } finally {
     loading.value = false
   }
-})
+}
+
+async function submit() {
+  formErrors.value = []
+  sending.value = true
+  try {
+    await api('/equipments', {
+      method: 'POST',
+      // Categoria vazia vai como null: é um campo opcional, e a lista mostra "-"
+      body: { ...form, category: form.category.trim() || null },
+    })
+    Object.assign(form, emptyForm)
+    await load()
+  } catch (e) {
+    formErrors.value = e.messages
+  } finally {
+    sending.value = false
+  }
+}
+
+onMounted(load)
 </script>
 
 <template>
@@ -23,11 +51,37 @@ onMounted(async () => {
     <h1>Equipamentos</h1>
   </div>
 
-  <p v-if="error" class="error" role="alert">{{ error }}</p>
-  <p v-if="loading" class="muted">Carregando...</p>
-  <p v-else-if="!error && equipments.length === 0" class="card table-empty">Nenhum equipamento ativo.</p>
+  <p v-if="loadError" class="error" role="alert">{{ loadError }}</p>
 
-  <div v-else-if="!error" class="card table-wrap">
+  <!-- VIEWER não vê o formulário; a proteção real é o 403 do backend -->
+  <form v-if="auth.isAdmin && !loadError" class="card form" @submit.prevent="submit">
+    <h2>Novo equipamento</h2>
+    <div class="form-grid">
+      <label>
+        Código
+        <input v-model="form.code" maxlength="30" required />
+      </label>
+      <label>
+        Nome
+        <input v-model="form.name" maxlength="120" required />
+      </label>
+      <label>
+        Categoria (opcional)
+        <input v-model="form.category" maxlength="60" />
+      </label>
+    </div>
+    <div v-if="formErrors.length" class="error" role="alert">
+      <p v-for="message in formErrors" :key="message">{{ message }}</p>
+    </div>
+    <div>
+      <button type="submit" :disabled="sending">Criar equipamento</button>
+    </div>
+  </form>
+
+  <p v-if="loading" class="muted">Carregando...</p>
+  <p v-else-if="!loadError && equipments.length === 0" class="card table-empty">Nenhum equipamento ativo.</p>
+
+  <div v-else-if="!loadError" class="card table-wrap">
     <table class="stack">
       <thead>
         <tr>
