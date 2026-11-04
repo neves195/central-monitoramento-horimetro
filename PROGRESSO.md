@@ -1,6 +1,6 @@
 # Progresso do projeto: Central de Monitoramento de Horímetro
 
-Atualizado em 31/10/2026. Prazo final: 08/11/2026. Checkpoint: API com os 6 requisitos até 03/11/2026.
+Atualizado em 04/11/2026. Prazo final: 08/11/2026.
 
 ## Contexto e forma de trabalho
 
@@ -53,12 +53,7 @@ Todos foram testados com `curl` em uma instância temporária.
 
 ## O que falta
 
-A API está completa (equipamentos, leituras, planos, manutenções, alertas) e coberta por 48 testes de service/entidade (`./mvnw test`). Pendências:
-
-1. `reactivate(Long id)`, o inverso do `deactivate`, sugerido como exercício para João e ainda não feito. Não existe rota para reativar equipamento nem plano.
-2. Decidir se `findById` deve esconder equipamentos desativados (continua em aberto).
-3. Nenhum teste de controller/integração (MockMvc): as rotas foram verificadas só com `curl`. Os testes atuais cobrem as regras de negócio, que é onde está o risco.
-4. Falta um README de uso da API para a entrega/entrevista, com a lista de rotas e exemplos de `curl`.
+Tudo o que estava pendente aqui foi concluído na entrega final (veja a seção no fim deste arquivo). A suíte passou de 48 para 82 testes. O que ficou de fora está em "Limitações conhecidas", no README.
 
 ## Erros que João já treinou (para não repetir a explicação do zero)
 
@@ -124,10 +119,9 @@ Em produção essas senhas viriam de variáveis de ambiente, nunca do repositór
 ### Verificado com curl (instância própria)
 sem login 401; senha errada 401; VIEWER GET 200; VIEWER POST/DELETE 403; ADMIN POST 201, GET 200, PUT 200, DELETE 204; validação 400 e não encontrado 404 continuam no formato do `GlobalExceptionHandler`; H2 só abre com o perfil dev. `./mvnw test`: os 48 testes continuam passando.
 
-### O que falta (próximos passos, com o conceito de cada um)
-4. **401 e 403 em JSON** no formato `{status, error, messages[], timestamp}`. Hoje o 401 vem com corpo vazio e o 403 no formato padrão do Spring. Conceito: esses erros acontecem no filtro, ANTES de chegar no controller, por isso o `@RestControllerAdvice` não os pega. A solução são dois ganchos no `SecurityFilterChain`: `AuthenticationEntryPoint` (401, "quem é você?") e `AccessDeniedHandler` (403, "você não pode"). Dica: reaproveitar o record `GlobalExceptionHandler.ApiError`.
-5. **Testes de segurança** com MockMvc e `@WithMockUser` (starter `security-test` já está no pom): sem login = 401, VIEWER fazendo POST = 403, ADMIN fazendo POST = 2xx. Conceito: teste de fatia web (`@WebMvcTest` ou `@SpringBootTest` + `@AutoConfigureMockMvc`) sobe só o necessário.
-6. **Commit** `feat: adiciona seguranca com HTTP Basic e papeis` e resumo final aqui.
+### Passos 4 a 6: concluídos em 03/11/2026
+
+Veja os itens 1 e 2 da seção "Entrega final", no fim deste arquivo.
 
 ### Pontos para explicar na entrevista
 - Autenticação (quem é você, falha = 401) vs autorização (o que pode fazer, falha = 403).
@@ -188,3 +182,21 @@ João pediu para esta fase ser feita de ponta a ponta, sem o modo guiado. Regra:
 - Proxy do Vite em vez de CORS: o navegador só fala com o Vite (mesma origem), e o backend não libera nenhuma origem.
 - Duas mudanças no backend por causa do login: `GET /api/me` (no Basic não há rota de login; ela valida as credenciais e devolve o papel, sem adivinhar pelo nome) e o `WWW-Authenticate` omitido quando vem `X-Requested-With: XMLHttpRequest` (senão o navegador abre a janela nativa de login por cima da tela). `curl` continua recebendo o header.
 - Testado em navegador real (Chrome headless, 31 verificações, script fora do repositório): fluxos de ADMIN e VIEWER, erros 409 na tela, nada em localStorage/sessionStorage/cookie, sem rolagem lateral em 390 px.
+
+### Item 8: README
+- O que foi feito: visão geral, tecnologias, pré-requisitos, como rodar, usuários, rotas com curl, regras de negócio, decisões, evolução do banco, testes e limitações.
+- Os exemplos de curl foram executados de verdade na porta 8091, não só escritos. Isso revelou que o curl do Git Bash no Windows corrompe acento no argumento `-d` (a API responde 400); com o mesmo JSON em UTF-8 a API responde 201. O README usa exemplo sem acento e avisa disso.
+- Node aparece como 20.19+, não só 20+: é o mínimo exigido pelo Vite 8.
+- As limitações foram levantadas lendo o código, e não só as óbvias: o `PUT` de plano não valida `lastMaintenanceHours`, a data da leitura não é validada e erros de JSON malformado saem no formato padrão do Spring.
+- Registrar limitações é decisão consciente: mostra o que foi visto e priorizado, em vez de deixar o avaliador descobrir.
+
+### Item 9: roteiro e perguntas (`docs/`)
+- `ROTEIRO_VIDEO.md`: 5 minutos com tempo por trecho, usando um fluxo que mostra a regra central: leitura no `EMP-001` vira alerta, agendar e concluir faz o alerta sumir.
+- Os números do roteiro vêm do seed (`EMP-001`: vence em 1.520 h; a leitura de 1.530 h deixa o plano vencido).
+- `PERGUNTAS_ENTREVISTA.md`: 15 perguntas com respostas curtas, cada uma ligada ao código real.
+- Inclui um ponto fraco de propósito (pergunta 7, `open-in-view`): melhor João saber explicar do que ser surpreendido.
+- Antes da entrevista, abrir cada arquivo citado: o código desta fase foi escrito pelo Claude, e as respostas só valem se João conseguir defendê-las com as próprias palavras.
+
+### Estado final da entrega
+- `./mvnw clean test`: 82 testes verdes. Build do frontend sem erros. Verificação em navegador real: 31 de 31.
+- O bit de execução do `backend/mvnw` aparece alterado no Git do Windows e foi deixado fora dos commits de propósito.
