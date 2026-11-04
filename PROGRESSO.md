@@ -181,3 +181,10 @@ João pediu para esta fase ser feita de ponta a ponta, sem o modo guiado. Regra:
 - O teste principal é "concluir zera o plano e o alerta some": ele passa por todas as camadas e demonstra o status calculado.
 - `@Transactional` na classe: cada teste desfaz o que gravou, e por isso nenhum teste depende da ordem de execução, mesmo com o seed da V2 no banco.
 - `@WithMockUser(roles = "ADMIN")`: aqui o foco é a regra de negócio; a autenticação real já está coberta pelo `SecurityIntegrationTest`.
+
+### Item 7: frontend Vue 3 + Vite (`frontend/`)
+- O que foi feito: login, painel de alertas (cores, contadores, filtro, mais urgente primeiro), equipamentos, leituras, planos e manutenções (agendar, concluir, cancelar). VIEWER não vê formulários nem botões de escrita; a proteção real continua sendo o 403 do backend.
+- Credenciais só em memória (`stores/auth.js`): recarregar a página pede login de novo. No Basic o header carrega a própria senha, e localStorage ficaria exposto a qualquer XSS.
+- Proxy do Vite em vez de CORS: o navegador só fala com o Vite (mesma origem), e o backend não libera nenhuma origem.
+- Duas mudanças no backend por causa do login: `GET /api/me` (no Basic não há rota de login; ela valida as credenciais e devolve o papel, sem adivinhar pelo nome) e o `WWW-Authenticate` omitido quando vem `X-Requested-With: XMLHttpRequest` (senão o navegador abre a janela nativa de login por cima da tela). `curl` continua recebendo o header.
+- Testado em navegador real (Chrome headless, 31 verificações, script fora do repositório): fluxos de ADMIN e VIEWER, erros 409 na tela, nada em localStorage/sessionStorage/cookie, sem rolagem lateral em 390 px.
