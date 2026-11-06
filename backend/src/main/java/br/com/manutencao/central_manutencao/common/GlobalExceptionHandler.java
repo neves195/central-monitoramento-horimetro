@@ -16,23 +16,23 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Formato único de erro devolvido pela API
+    /** Formato único de erro devolvido pela API (também usado pelo SecurityErrorHandler). */
     public record ApiError(int status, String error, List<String> messages, LocalDateTime timestamp) {
     }
 
-    // Equipamento não encontrado -> 404
+    /** Recurso não encontrado -> 404. */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException ex) {
         return build(HttpStatus.NOT_FOUND, List.of(ex.getMessage()));
     }
 
-    // Regra de negócio violada (ex: código duplicado) -> 409
+    /** Regra de negócio violada (ex: código duplicado) -> 409. */
     @ExceptionHandler(BusinessRuleException.class)
     public ResponseEntity<ApiError> handleBusinessRule(BusinessRuleException ex) {
         return build(HttpStatus.CONFLICT, List.of(ex.getMessage()));
     }
 
-    // Campo inválido no @Valid (ex: code em branco) -> 400, listando cada campo com problema
+    /** Campo inválido no {@code @Valid} (ex: code em branco) -> 400, com uma mensagem por campo. */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex) {
         List<String> messages = ex.getBindingResult().getFieldErrors().stream()
@@ -41,6 +41,7 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, messages);
     }
 
+    /** Monta a resposta de erro com o status e o horário atual. */
     private ResponseEntity<ApiError> build(HttpStatus status, List<String> messages) {
         ApiError body = new ApiError(status.value(), status.getReasonPhrase(), messages, LocalDateTime.now());
         return ResponseEntity.status(status).body(body);

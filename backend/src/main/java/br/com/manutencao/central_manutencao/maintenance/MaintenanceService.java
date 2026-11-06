@@ -15,6 +15,10 @@ import br.com.manutencao.central_manutencao.equipment.EquipmentService;
 import br.com.manutencao.central_manutencao.plan.MaintenancePlan;
 import br.com.manutencao.central_manutencao.plan.MaintenancePlanService;
 
+/**
+ * Regras das manutenções: só equipamento ativo recebe agendamento, o plano precisa ser do mesmo
+ * equipamento e só manutenção agendada pode ser concluída ou cancelada.
+ */
 @Service
 public class MaintenanceService {
 
@@ -22,6 +26,7 @@ public class MaintenanceService {
     private final EquipmentService equipmentService;
     private final MaintenancePlanService planService;
 
+    /** Injeta as dependências. */
     public MaintenanceService(MaintenanceRecordRepository maintenances, EquipmentService equipmentService,
             MaintenancePlanService planService) {
         this.maintenances = maintenances;
@@ -29,7 +34,13 @@ public class MaintenanceService {
         this.planService = planService;
     }
 
-    // planId vem null quando a manutenção é avulsa
+    /**
+     * Agenda uma manutenção com status SCHEDULED.
+     *
+     * @param planId plano que a manutenção atende; null quando é avulsa
+     * @throws ResourceNotFoundException se o equipamento ou o plano não existir
+     * @throws BusinessRuleException     se o equipamento ou o plano estiver desativado, ou se o plano for de outro equipamento
+     */
     @Transactional
     public MaintenanceRecord schedule(Long equipmentId, Long planId, MaintenanceRecord data) {
 
@@ -59,6 +70,12 @@ public class MaintenanceService {
         return maintenances.save(data);
     }
 
+    /**
+     * Lista as manutenções do equipamento, mais recentes primeiro.
+     *
+     * @param status filtro opcional; null traz todas
+     * @throws ResourceNotFoundException se o equipamento não existir
+     */
     @Transactional(readOnly = true)
     public List<MaintenanceRecord> listByEquipment(Long equipmentId, MaintenanceStatus status) {
         equipmentService.findById(equipmentId);
@@ -69,12 +86,26 @@ public class MaintenanceService {
         return maintenances.findByEquipmentIdAndStatusOrderByScheduledDateDescIdDesc(equipmentId, status);
     }
 
+    /**
+     * Busca uma manutenção por id.
+     *
+     * @throws ResourceNotFoundException se o id não existir
+     */
     @Transactional(readOnly = true)
     public MaintenanceRecord findById(Long id) {
         return maintenances.findById(id).orElseThrow(() -> new ResourceNotFoundException("Manutencao nao encontrada: " + id));
     }
 
-    // performedAt, hoursAtMaintenance e responsible vazios usam os padrões descritos na conclusão
+    /**
+     * Conclui uma manutenção agendada e, se houver plano, zera a contagem dele (a próxima
+     * manutenção conta a partir das horas desta).
+     *
+     * @param performedAt        data realizada; null vale hoje
+     * @param hoursAtMaintenance horímetro na manutenção; null vale o horímetro atual do equipamento
+     * @param responsible        responsável; null mantém o do agendamento
+     * @throws ResourceNotFoundException se o id não existir
+     * @throws BusinessRuleException     se a manutenção não estiver agendada ou as horas passarem do horímetro atual
+     */
     @Transactional
     public MaintenanceRecord complete(Long id, LocalDate performedAt, BigDecimal hoursAtMaintenance, String responsible) {
         MaintenanceRecord current = findById(id);
@@ -105,6 +136,12 @@ public class MaintenanceService {
         return maintenances.save(current);
     }
 
+    /**
+     * Cancela uma manutenção agendada. O registro continua no histórico com status CANCELED.
+     *
+     * @throws ResourceNotFoundException se o id não existir
+     * @throws BusinessRuleException     se a manutenção não estiver agendada
+     */
     @Transactional
     public MaintenanceRecord cancel(Long id) {
         MaintenanceRecord current = findById(id);
@@ -114,7 +151,7 @@ public class MaintenanceService {
         return maintenances.save(current);
     }
 
-    // Só manutenção agendada pode ser concluída ou cancelada
+    // Só manutenção agendada pode ser concluída ou cancelada; action entra na mensagem de erro
     private void requireScheduled(MaintenanceRecord record, String action) {
         if (record.getStatus() != MaintenanceStatus.SCHEDULED) {
             throw new BusinessRuleException("Apenas manutencao agendada pode ser " + action

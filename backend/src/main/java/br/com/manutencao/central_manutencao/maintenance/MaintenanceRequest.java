@@ -6,7 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-// planId é opcional: vazio significa manutenção avulsa, sem plano
+/**
+ * Corpo de POST de manutenção. planId é opcional: vazio significa manutenção avulsa, sem plano.
+ */
 public record MaintenanceRequest(
     Long planId,
     @NotNull LocalDate scheduledDate,

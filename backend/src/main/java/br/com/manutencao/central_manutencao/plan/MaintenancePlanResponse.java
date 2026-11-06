@@ -2,6 +2,9 @@ package br.com.manutencao.central_manutencao.plan;
 
 import java.math.BigDecimal;
 
+/**
+ * Plano devolvido pela API, já com vencimento, restante e status calculados no momento da consulta.
+ */
 public record MaintenancePlanResponse(
     Long id,
     Long equipmentId,
@@ -14,6 +17,7 @@ public record MaintenancePlanResponse(
     PlanStatus status,
     boolean active) {
 
+    /** Converte a entidade (com o equipamento carregado) no formato de resposta. */
     public static MaintenancePlanResponse from(MaintenancePlan plan) {
         return new MaintenancePlanResponse(
             plan.getId(),

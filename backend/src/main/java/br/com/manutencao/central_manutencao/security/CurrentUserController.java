@@ -14,10 +14,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class CurrentUserController {
 
+    /** Usuário logado: nome e papéis sem o prefixo ROLE_ (ex: ADMIN). */
     public record CurrentUserResponse(String username, List<String> roles) {
     }
 
-    // GET /api/me -> a regra de GET em /api/** do SecurityConfig já exige login
+    /**
+     * GET /api/me. Papel necessário: ADMIN ou VIEWER (a regra de GET em /api/** do SecurityConfig já exige login).
+     */
     @GetMapping("/api/me")
     public CurrentUserResponse me(Authentication authentication) {
         List<String> roles = authentication.getAuthorities().stream()

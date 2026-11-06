@@ -5,7 +5,12 @@ import java.math.BigDecimal;
 import br.com.manutencao.central_manutencao.plan.MaintenancePlan;
 import br.com.manutencao.central_manutencao.plan.PlanStatus;
 
-// Um plano que precisa de atenção, com os dados do equipamento para exibir sem outra consulta
+/**
+ * Um plano que precisa de atenção, com os dados do equipamento para exibir sem outra consulta.
+ *
+ * @param nextDueHours   horímetro em que a manutenção vence
+ * @param remainingHours horas que faltam para o vencimento (negativo quando já venceu)
+ */
 public record AlertResponse(
     Long planId,
     String planName,
@@ -17,6 +22,7 @@ public record AlertResponse(
     BigDecimal remainingHours,
     PlanStatus status) {
 
+    /** Converte um plano (com o equipamento já carregado) no formato de resposta. */
     public static AlertResponse from(MaintenancePlan plan) {
         return new AlertResponse(
             plan.getId(),

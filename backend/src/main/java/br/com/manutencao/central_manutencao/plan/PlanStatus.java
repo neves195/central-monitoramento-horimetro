@@ -6,7 +6,7 @@ package br.com.manutencao.central_manutencao.plan;
  */
 public enum PlanStatus {
 
-    // Restante <= 0: a manutenção já passou do ponto
+    // Restante <= 0: o horímetro já chegou ou passou do vencimento
     OVERDUE,
 
     // Restante dentro da faixa de aviso (<= warningHours)

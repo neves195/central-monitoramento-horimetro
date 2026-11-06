@@ -10,17 +10,28 @@ import br.com.manutencao.central_manutencao.common.BusinessRuleException;
 import br.com.manutencao.central_manutencao.equipment.Equipment;
 import br.com.manutencao.central_manutencao.equipment.EquipmentService;
 
+/**
+ * Regras das leituras: o horímetro só anda para frente e a leitura atualiza o equipamento.
+ */
 @Service
 public class HourMeterReadingService {
 
     private final HourMeterReadingRepository readings;
     private final EquipmentService equipmentService;
 
+    /** Injeta as dependências. */
     public HourMeterReadingService(HourMeterReadingRepository readings, EquipmentService equipmentService) {
         this.readings = readings;
         this.equipmentService = equipmentService;
     }
 
+    /**
+     * Registra uma leitura e atualiza o horímetro atual do equipamento, na mesma transação.
+     * Leitura sem data vale o momento do registro; leitura igual ao horímetro atual é aceita.
+     *
+     * @throws ResourceNotFoundException se o equipamento não existir
+     * @throws BusinessRuleException     se o equipamento estiver desativado ou a leitura for menor que o horímetro atual
+     */
     @Transactional
     public HourMeterReading register(Long equipmentId, HourMeterReading data) {
 
@@ -50,6 +61,11 @@ public class HourMeterReadingService {
         return readings.save(data);
     }
 
+    /**
+     * Histórico de leituras do equipamento, mais recente primeiro. Funciona também para equipamento desativado.
+     *
+     * @throws ResourceNotFoundException se o equipamento não existir
+     */
     @Transactional(readOnly = true)
     public List<HourMeterReading> listByEquipment(Long equipmentId) {
         equipmentService.findById(equipmentId);

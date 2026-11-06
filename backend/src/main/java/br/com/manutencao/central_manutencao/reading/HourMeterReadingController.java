@@ -13,17 +13,21 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 
+/**
+ * Leituras do horímetro de um equipamento. GET aceita ADMIN e VIEWER; POST exige ADMIN.
+ */
 @RestController
 @RequestMapping("/api/equipments/{equipmentId}/readings")
 public class HourMeterReadingController {
 
     private final HourMeterReadingService service;
 
+    /** Injeta as dependências. */
     public HourMeterReadingController(HourMeterReadingService service) {
         this.service = service;
     }
 
-    // POST /api/equipments/{equipmentId}/readings -> 201, atualiza o horímetro do equipamento
+    /** POST /api/equipments/{equipmentId}/readings (ADMIN). Responde 201 e atualiza o horímetro do equipamento. */
     @PostMapping
     public ResponseEntity<HourMeterReadingResponse> register(@PathVariable Long equipmentId,
             @Valid @RequestBody HourMeterReadingRequest request) {
@@ -32,7 +36,7 @@ public class HourMeterReadingController {
         return ResponseEntity.created(location).body(HourMeterReadingResponse.from(created));
     }
 
-    // GET /api/equipments/{equipmentId}/readings -> histórico, mais recente primeiro
+    /** GET /api/equipments/{equipmentId}/readings (ADMIN ou VIEWER). Histórico, mais recente primeiro. */
     @GetMapping
     public List<HourMeterReadingResponse> list(@PathVariable Long equipmentId) {
         return service.listByEquipment(equipmentId).stream().map(HourMeterReadingResponse::from).toList();

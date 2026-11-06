@@ -9,62 +9,63 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Configuração de segurança da API: HTTP Basic, sem sessão, com permissões por papel e método.
+ *
+ * Papéis: ADMIN lê e escreve; VIEWER só lê. Os usuários ficam em memória porque o escopo
+ * do projeto não inclui cadastro de usuários (veja "Evolução para JWT" no README).
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // Passo 2a: codificador de senhas
-    // - Criar um bean PasswordEncoder que devolve um BCryptPasswordEncoder.
-    // - Pistas: anotação @Bean em cima de um método público; o tipo de retorno é PasswordEncoder
-    //   (da interface), mas o objeto criado é o BCrypt.
+    /** Codificador de senhas BCrypt: as senhas nunca ficam em texto puro na memória. */
     @Bean
-    public org.springframework.security.crypto.password.PasswordEncoder passwordEncoder() {
-        return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
-    // Passo 2b: usuários em memória (fazemos depois do 2a)
-    // - Dois usuários: admin (papel ADMIN) e viewer (papel VIEWER).
-    // - As senhas NUNCA entram em texto puro: sempre passam por encoder.encode(...).
+    /**
+     * Usuários em memória: {@code admin} (ADMIN) e {@code viewer} (VIEWER).
+     * As senhas vêm de {@code application.properties} e passam pelo encoder antes de entrar.
+     */
     @Bean
-    public org.springframework.security.core.userdetails.UserDetailsService userDetailsService(
+    public UserDetailsService userDetailsService(
             @Value("${app.security.admin-password}") String adminPassword,
             @Value("${app.security.viewer-password}") String viewerPassword) {
 
-        var admin = org.springframework.security.core.userdetails.User.withUsername("admin")
+        var admin = User.withUsername("admin")
                 .password(passwordEncoder().encode(adminPassword))
                 .roles("ADMIN")
                 .build();
 
-        var viewer = org.springframework.security.core.userdetails.User.withUsername("viewer")
+        var viewer = User.withUsername("viewer")
                 .password(passwordEncoder().encode(viewerPassword))
                 .roles("VIEWER")
                 .build();
 
-        return new org.springframework.security.provisioning.InMemoryUserDetailsManager(admin, viewer);
+        return new InMemoryUserDetailsManager(admin, viewer);
     }
 
-    // Passo 3a: regras de acesso (SecurityFilterChain)
-    // - Um bean SecurityFilterChain, que recebe um HttpSecurity e devolve http.build().
-    //   Pista: o método declara "throws Exception".
-    // 1. Stateless: a API não guarda sessão (cada requisição manda as credenciais).
-    //    Pista: sessionManagement + SessionCreationPolicy.STATELESS
-    // 2. CSRF desligado: ele protege formulários com cookie de sessão, e aqui não há sessão nem cookie.
-    //    Pista: csrf + disable
-    // 3. Regras por papel e método HTTP, em authorizeHttpRequests + requestMatchers:
-    //    - GET em /api/**                 -> ADMIN e VIEWER
-    //    - POST, PUT e DELETE em /api/**  -> só ADMIN
-    //    - qualquer outra rota            -> precisa estar logado
-    // 4. Login por HTTP Basic (o mesmo que o curl -u usa).
-    //    Pista: httpBasic + Customizer.withDefaults()
-
+    /**
+     * Cadeia principal de filtros: stateless, sem CSRF, regras por papel e login HTTP Basic.
+     *
+     * Os erros 401 e 403 são escritos pelo {@link SecurityErrorHandler}, no mesmo formato JSON
+     * do restante da API.
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityErrorHandler errorHandler) throws Exception {
         http
                 // Stateless: sem sessão, cada requisição leva as credenciais
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // CSRF desligado: sem sessão e sem cookie, não há o que explorar
+                // CSRF desligado: ele protege sessões baseadas em cookie, e aqui não há sessão nem cookie
                 .csrf(csrf -> csrf.disable())
                 // Vale a PRIMEIRA regra que combina, por isso o anyRequest fica por último
                 .authorizeHttpRequests(auth -> auth
@@ -73,10 +74,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
-                // Login por HTTP Basic (o que o curl -u usa)
                 // A senha errada é tratada pelo próprio filtro do Basic, por isso ele também recebe o entry point
                 .httpBasic(basic -> basic.authenticationEntryPoint(errorHandler.authenticationEntryPoint()))
-                // Erros do filtro (antes do controller): sem isto o 401 vem vazio e o 403 no formato padrão
+                // Erros do filtro acontecem antes do controller: sem isto o 401 vem vazio e o 403 no formato padrão
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint(errorHandler.authenticationEntryPoint())
                         .accessDeniedHandler(errorHandler.accessDeniedHandler()));
@@ -84,10 +84,13 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Passo 3b: console do H2 liberado SOMENTE no perfil "dev"
-    // - Sem o perfil dev esta cadeia nem existe, e o /h2-console cai na regra acima (exige login).
-    // - Para ligar: ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
-    // - O console é aberto dentro de um frame da própria página, por isso o frameOptions sameOrigin.
+    /**
+     * Libera o console do H2 SOMENTE no perfil "dev". Sem o perfil, esta cadeia não existe e o
+     * /h2-console cai na regra geral (exige login). Para ligar:
+     * {@code ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev}.
+     *
+     * O console abre dentro de um frame da própria página, por isso o frameOptions sameOrigin.
+     */
     @Bean
     @Profile("dev")
     @Order(1)

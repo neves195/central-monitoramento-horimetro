@@ -10,17 +10,28 @@ import br.com.manutencao.central_manutencao.common.ResourceNotFoundException;
 import br.com.manutencao.central_manutencao.equipment.Equipment;
 import br.com.manutencao.central_manutencao.equipment.EquipmentService;
 
+/**
+ * Regras dos planos de manutenção: só equipamento ativo recebe plano e a última manutenção
+ * nunca passa do horímetro atual.
+ */
 @Service
 public class MaintenancePlanService {
 
     private final MaintenancePlanRepository plans;
     private final EquipmentService equipmentService;
 
+    /** Injeta as dependências. */
     public MaintenancePlanService(MaintenancePlanRepository plans, EquipmentService equipmentService) {
         this.plans = plans;
         this.equipmentService = equipmentService;
     }
 
+    /**
+     * Cria um plano para o equipamento. Sem última manutenção informada, a contagem começa no horímetro atual.
+     *
+     * @throws ResourceNotFoundException se o equipamento não existir
+     * @throws BusinessRuleException     se o equipamento estiver desativado ou a última manutenção for maior que o horímetro atual
+     */
     @Transactional
     public MaintenancePlan create(Long equipmentId, MaintenancePlan data) {
 
@@ -47,17 +58,32 @@ public class MaintenancePlanService {
         return plans.save(data);
     }
 
+    /**
+     * Lista os planos ativos do equipamento.
+     *
+     * @throws ResourceNotFoundException se o equipamento não existir
+     */
     @Transactional(readOnly = true)
     public List<MaintenancePlan> listByEquipment(Long equipmentId) {
         equipmentService.findById(equipmentId);
         return plans.findByEquipmentIdAndActiveTrue(equipmentId);
     }
 
+    /**
+     * Busca um plano por id, ativo ou não.
+     *
+     * @throws ResourceNotFoundException se o id não existir
+     */
     @Transactional(readOnly = true)
     public MaintenancePlan findById(Long id) {
         return plans.findById(id).orElseThrow(() -> new ResourceNotFoundException("Plano nao encontrado: " + id));
     }
 
+    /**
+     * Atualiza nome, intervalo e aviso. A última manutenção só muda se for informada.
+     *
+     * @throws ResourceNotFoundException se o id não existir
+     */
     @Transactional
     public MaintenancePlan update(Long id, MaintenancePlan data) {
         MaintenancePlan current = findById(id);
@@ -73,13 +99,23 @@ public class MaintenancePlanService {
         return plans.save(current);
     }
 
+    /**
+     * Exclusão lógica: o plano some das listas, mas as manutenções ligadas a ele continuam.
+     *
+     * @throws ResourceNotFoundException se o id não existir
+     */
     @Transactional
     public void deactivate(Long id) {
         MaintenancePlan current = findById(id);
         current.setActive(false);
     }
 
-    // Plano ativo em equipamento desativado não faz sentido: mesma regra do create
+    /**
+     * Reativa o plano. Plano ativo em equipamento desativado não faz sentido: mesma regra do create.
+     *
+     * @throws ResourceNotFoundException se o id não existir
+     * @throws BusinessRuleException     se o equipamento estiver desativado
+     */
     @Transactional
     public MaintenancePlan reactivate(Long id) {
         MaintenancePlan current = findById(id);

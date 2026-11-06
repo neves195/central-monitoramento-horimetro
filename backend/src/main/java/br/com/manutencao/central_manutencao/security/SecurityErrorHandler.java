@@ -26,11 +26,12 @@ public class SecurityErrorHandler {
 
     private final ObjectMapper objectMapper;
 
+    /** Recebe o ObjectMapper do Spring para serializar o corpo do erro. */
     public SecurityErrorHandler(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
-    // 401: não sabemos quem é (sem credenciais ou credenciais erradas)
+    /** 401: não sabemos quem é (sem credenciais ou credenciais erradas). */
     AuthenticationEntryPoint authenticationEntryPoint() {
         return (request, response, authException) -> {
             // Este header faz o navegador abrir a janela nativa de login. O frontend se identifica
@@ -42,7 +43,7 @@ public class SecurityErrorHandler {
         };
     }
 
-    // 403: sabemos quem é, mas o papel dele não permite a operação
+    /** 403: sabemos quem é, mas o papel dele não permite a operação. */
     AccessDeniedHandler accessDeniedHandler() {
         return (request, response, accessDeniedException) ->
                 write(response, HttpStatus.FORBIDDEN, "Seu perfil não tem permissão para esta operação");

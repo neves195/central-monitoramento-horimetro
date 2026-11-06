@@ -52,7 +52,7 @@ public class Equipment {
 
     // ---- CONSTRUTORES ----
 
-    // Exigido pelo JPA para criar o objeto ao ler do banco
+    /** Exigido pelo JPA para criar o objeto ao ler do banco. */
     public Equipment() {
     }
 
@@ -106,10 +106,9 @@ public class Equipment {
         return createdAt;
     }
 
-    // ---- CICLO DE VIDA ----s
+    // ---- CICLO DE VIDA ----
 
-    // Roda automaticamente antes de gravar pela primeira vez.
-    // Garante que created_at nunca fique vazio, não importa quem criou o equipamento.
+    /** Roda antes do primeiro INSERT e garante que created_at nunca fique vazio. */
     @PrePersist
     void onCreate() {
         this.createdAt = LocalDateTime.now();

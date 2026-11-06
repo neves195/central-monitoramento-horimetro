@@ -19,11 +19,17 @@ public class AlertService {
 
     private final MaintenancePlanRepository plans;
 
+    /** Injeta o repositório de planos. */
     public AlertService(MaintenancePlanRepository plans) {
         this.plans = plans;
     }
 
-    // status vem null para trazer vencidos e próximos juntos; ON_TIME nunca é alerta, então resulta em lista vazia
+    /**
+     * Lista os alertas, do mais urgente para o menos urgente.
+     *
+     * @param status OVERDUE ou UPCOMING para filtrar; null traz vencidos e próximos juntos.
+     *               ON_TIME nunca é alerta, então resulta em lista vazia
+     */
     @Transactional(readOnly = true)
     public List<MaintenancePlan> list(PlanStatus status) {
         return plans.findActiveWithActiveEquipment().stream()

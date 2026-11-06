@@ -60,22 +60,26 @@ public class MaintenancePlan {
 
     // ---- CONSTRUTORES ----
 
-    // Exigido pelo JPA para criar o objeto ao ler do banco
+    /** Exigido pelo JPA para criar o objeto ao ler do banco. */
     public MaintenancePlan() {
     }
 
     // ---- REGRAS CALCULADAS ----
 
-    // Próximo vencimento = última manutenção + intervalo
+    /** Próximo vencimento = última manutenção + intervalo. */
     public BigDecimal nextDueHours() {
         return lastMaintenanceHours.add(intervalHours);
     }
 
-    // Restante = próximo vencimento - horímetro atual (negativo quando já venceu)
+    /** Restante = próximo vencimento - horímetro atual (negativo quando já venceu). */
     public BigDecimal remainingHours() {
         return nextDueHours().subtract(equipment.getCurrentHours());
     }
 
+    /**
+     * Situação do plano: OVERDUE se o restante é zero ou negativo, UPCOMING se está dentro da
+     * faixa de aviso (restante <= warningHours) e ON_TIME nos demais casos.
+     */
     public PlanStatus status() {
         BigDecimal remaining = remainingHours();
 
@@ -148,7 +152,7 @@ public class MaintenancePlan {
 
     // ---- CICLO DE VIDA ----
 
-    // Roda automaticamente antes de gravar pela primeira vez
+    /** Roda antes do primeiro INSERT e preenche created_at. */
     @PrePersist
     void onCreate() {
         this.createdAt = LocalDateTime.now();

@@ -8,7 +8,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-// lastMaintenanceHours é opcional: na criação vazio vale o horímetro atual; na edição vazio mantém o valor
+/**
+ * Corpo de POST e PUT de plano. O intervalo precisa ser maior que zero.
+ * lastMaintenanceHours é opcional: na criação vazio vale o horímetro atual; na edição vazio mantém o valor.
+ */
 public record MaintenancePlanRequest(
     @NotBlank @Size(max = 120) String name,
     @NotNull @DecimalMin(value = "0.0", inclusive = false) @Digits(integer = 11, fraction = 1) BigDecimal intervalHours,

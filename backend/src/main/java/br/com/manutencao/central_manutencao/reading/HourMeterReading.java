@@ -52,7 +52,7 @@ public class HourMeterReading {
 
     // ---- CONSTRUTORES ----
 
-    // Exigido pelo JPA para criar o objeto ao ler do banco
+    /** Exigido pelo JPA para criar o objeto ao ler do banco. */
     public HourMeterReading() {
     }
 
@@ -100,7 +100,7 @@ public class HourMeterReading {
 
     // ---- CICLO DE VIDA ----
 
-    // Roda automaticamente antes de gravar pela primeira vez
+    /** Roda antes do primeiro INSERT e preenche created_at. */
     @PrePersist
     void onCreate() {
         this.createdAt = LocalDateTime.now();
