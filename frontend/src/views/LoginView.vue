@@ -1,3 +1,6 @@
+<!--
+  Tela de login: pede usuário e senha e valida no backend (GET /api/me) antes de entrar. Depois do login volta para a página que a pessoa queria abrir.
+-->
 <script setup>
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -11,6 +14,7 @@ const password = ref('')
 const error = ref('')
 const sending = ref(false)
 
+// Tenta entrar; 401 vira mensagem de credenciais inválidas e qualquer outro erro mostra o texto da API
 async function submit() {
   error.value = ''
   sending.value = true

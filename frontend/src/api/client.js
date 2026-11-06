@@ -1,3 +1,6 @@
+/**
+ * Cliente HTTP da API: injeta as credenciais, converte respostas de erro em ApiError e trata o 401 deslogando.
+ */
 import { auth, logout } from '../stores/auth'
 
 // Erro da API no formato {status, error, messages[], timestamp}
@@ -9,6 +12,7 @@ export class ApiError extends Error {
   }
 }
 
+// Lê o corpo como JSON; corpo vazio ou que não seja JSON vira null em vez de lançar erro
 async function readBody(response) {
   const text = await response.text()
   try {
@@ -18,6 +22,8 @@ async function readBody(response) {
   }
 }
 
+// Chama /api + path. Devolve o JSON da resposta (ou null) e lança ApiError em qualquer falha.
+// authHeader permite testar credenciais ainda não guardadas (usado no login).
 export async function api(path, { method = 'GET', body, authHeader } = {}) {
   // X-Requested-With faz o backend omitir o WWW-Authenticate no 401.
   // Sem isso, o navegador abriria a janela nativa de login por cima da tela.

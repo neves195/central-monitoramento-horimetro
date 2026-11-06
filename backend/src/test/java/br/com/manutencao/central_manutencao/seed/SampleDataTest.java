@@ -48,6 +48,7 @@ class SampleDataTest {
     @Autowired
     private MaintenanceRecordRepository maintenances;
 
+    // A demonstração precisa mostrar vencidos, próximos e em dia ao mesmo tempo
     @Test
     void plansCoverAllThreeStatuses() {
         Map<PlanStatus, Long> byStatus = plans.findActiveWithActiveEquipment().stream()
@@ -58,6 +59,7 @@ class SampleDataTest {
         assertEquals(4, byStatus.get(PlanStatus.ON_TIME));
     }
 
+    // O horímetro de cada equipamento tem que bater com a leitura mais recente do histórico
     @Test
     void lastReadingMatchesCurrentHoursOfEachEquipment() {
         List<Equipment> sample = equipments.findByActiveTrue();

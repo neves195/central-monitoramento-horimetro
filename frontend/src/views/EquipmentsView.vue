@@ -1,3 +1,7 @@
+<!--
+  Lista de equipamentos ativos, com o horímetro atual e o acesso às leituras, planos e manutenções de cada um.
+  Para ADMIN, inclui o formulário de cadastro de novo equipamento.
+-->
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api/client'
@@ -14,6 +18,7 @@ const form = reactive({ ...emptyForm })
 const formErrors = ref([])
 const sending = ref(false)
 
+// Busca os equipamentos ativos
 async function load() {
   loadError.value = ''
   try {
@@ -25,6 +30,7 @@ async function load() {
   }
 }
 
+// Cadastra o equipamento (só ADMIN) e recarrega a lista; erros de validação vêm um por campo
 async function submit() {
   formErrors.value = []
   sending.value = true
@@ -43,6 +49,7 @@ async function submit() {
   }
 }
 
+// Carrega a lista ao abrir a tela
 onMounted(load)
 </script>
 

@@ -1,3 +1,6 @@
+<!--
+  Planos de manutenção de um equipamento, com status calculado pelo backend e, para ADMIN, o formulário para criar um plano.
+-->
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api/client'
@@ -18,6 +21,7 @@ const form = reactive({ ...emptyForm })
 const formError = ref('')
 const sending = ref(false)
 
+// Busca o equipamento e seus planos ativos ao mesmo tempo
 async function load() {
   try {
     const [equipmentData, plansData] = await Promise.all([
@@ -33,6 +37,7 @@ async function load() {
   }
 }
 
+// Cria o plano e recarrega a lista
 async function submit() {
   formError.value = ''
   sending.value = true
@@ -51,6 +56,7 @@ async function submit() {
   }
 }
 
+// Carrega os dados ao abrir a tela
 onMounted(load)
 </script>
 

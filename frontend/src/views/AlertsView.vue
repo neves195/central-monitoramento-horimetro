@@ -1,3 +1,6 @@
+<!--
+  Painel de alertas (tela inicial): planos vencidos e próximos, mais urgente primeiro, com filtro por status e atalho para agendar a manutenção.
+-->
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { api } from '../api/client'
@@ -18,6 +21,7 @@ const visibleAlerts = computed(() =>
   filter.value === 'ALL' ? alerts.value : alerts.value.filter((alert) => alert.status === filter.value),
 )
 
+// Busca os alertas no backend
 async function load() {
   loading.value = true
   error.value = ''
@@ -30,12 +34,14 @@ async function load() {
   }
 }
 
+// Texto do restante: "Vencido há X" quando passou do vencimento, "Faltam X" caso contrário
 function remainingText(alert) {
   return alert.remainingHours <= 0
     ? `Vencido há ${formatHours(-alert.remainingHours)}`
     : `Faltam ${formatHours(alert.remainingHours)}`
 }
 
+// Carrega os alertas ao abrir a tela
 onMounted(load)
 </script>
 

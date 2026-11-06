@@ -28,6 +28,10 @@ import br.com.manutencao.central_manutencao.plan.MaintenancePlan;
 import br.com.manutencao.central_manutencao.plan.MaintenancePlanService;
 import br.com.manutencao.central_manutencao.plan.PlanStatus;
 
+/**
+ * Testa o MaintenanceService com o repositório simulado: agendamento (com plano ou avulsa),
+ * conclusão (que zera a contagem do plano) e cancelamento.
+ */
 @ExtendWith(MockitoExtension.class)
 class MaintenanceServiceTest {
 
@@ -171,6 +175,7 @@ class MaintenanceServiceTest {
         assertEquals(new BigDecimal("1300.0"), plan.getLastMaintenanceHours());
     }
 
+    // Responsável vazio na conclusão mantém o do agendamento; informado, substitui
     @Test
     void completeKeepsResponsibleWhenNotInformedAndReplacesWhenInformed() {
         MaintenanceRecord keep = scheduledRecord(null);
@@ -206,6 +211,7 @@ class MaintenanceServiceTest {
         verify(maintenances, never()).save(any());
     }
 
+    // Só SCHEDULED pode ser concluída: uma manutenção já concluída é rejeitada e o plano não muda
     @Test
     void completeRejectsRecordThatIsNotScheduled() {
         MaintenanceRecord record = scheduledRecord(plan);

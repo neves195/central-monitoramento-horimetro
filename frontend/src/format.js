@@ -1,3 +1,6 @@
+/**
+ * Funções de formatação para exibição (horas e datas no padrão brasileiro) e a data de hoje para campos de formulário.
+ */
 const hoursFormat = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 
 // 12350.5 -> "12.350,5 h"
@@ -20,6 +23,7 @@ export function formatDateTime(value) {
   return value ? `${formatDate(value)} ${value.slice(11, 16)}` : '-'
 }
 
+// Data de hoje no formato yyyy-MM-dd, o mesmo valor de um <input type="date">, no fuso local
 export function today() {
   const now = new Date()
   const month = String(now.getMonth() + 1).padStart(2, '0')

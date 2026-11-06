@@ -24,6 +24,10 @@ import org.springframework.transaction.annotation.Transactional;
  * Testa a cadeia de segurança real, com as senhas de verdade: por isso usa httpBasic(...)
  * em vez de @WithMockUser. O @Transactional desfaz o que cada teste grava no banco.
  */
+/**
+ * Segurança da API com os filtros reais: 401 sem login ou com senha errada, 403 para VIEWER em
+ * escrita, acesso liberado para o papel certo e o desvio do desafio Basic para o frontend.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -107,6 +111,7 @@ class SecurityIntegrationTest {
                 .andExpect(jsonPath("$.roles[0]").value("VIEWER"));
     }
 
+    // Cliente comum (curl, navegador direto) recebe o desafio Basic e pode pedir as credenciais
     @Test
     void curlStyleClientReceivesBasicChallenge() throws Exception {
         mvc.perform(get("/api/me"))

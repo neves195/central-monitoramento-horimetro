@@ -1,3 +1,6 @@
+/**
+ * Configuração do Vite: plugin do Vue e proxy de /api para o backend (BACKEND_URL, padrão http://localhost:8080).
+ */
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 

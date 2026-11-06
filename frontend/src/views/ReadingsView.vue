@@ -1,3 +1,6 @@
+<!--
+  Leituras de horímetro de um equipamento: histórico e, para ADMIN, o formulário para lançar uma nova leitura.
+-->
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api/client'
@@ -16,6 +19,7 @@ const form = reactive({ hours: '', readAt: '', registeredBy: auth.username })
 const formError = ref('')
 const sending = ref(false)
 
+// Busca o equipamento e o histórico de leituras ao mesmo tempo
 async function load() {
   try {
     const [equipmentData, readingsData] = await Promise.all([
@@ -31,6 +35,7 @@ async function load() {
   }
 }
 
+// Lança a leitura e recarrega a tela (o horímetro do equipamento também muda)
 async function submit() {
   formError.value = ''
   sending.value = true
@@ -50,6 +55,7 @@ async function submit() {
   }
 }
 
+// Carrega os dados ao abrir a tela
 onMounted(load)
 </script>
 

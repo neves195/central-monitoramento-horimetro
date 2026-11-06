@@ -1,3 +1,6 @@
+/**
+ * Rotas da aplicação e o guarda de login: sem credenciais em memória, toda rota (exceto /login) redireciona para a tela de login.
+ */
 import { watch } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { auth } from './stores/auth'
@@ -8,6 +11,7 @@ import MaintenancesView from './views/MaintenancesView.vue'
 import PlansView from './views/PlansView.vue'
 import ReadingsView from './views/ReadingsView.vue'
 
+// Rotas com :id recebem o id do equipamento como prop da tela
 const routes = [
   { path: '/login', name: 'login', component: LoginView, meta: { public: true } },
   { path: '/', name: 'alerts', component: AlertsView },

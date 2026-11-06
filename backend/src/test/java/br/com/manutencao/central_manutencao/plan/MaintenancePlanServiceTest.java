@@ -24,6 +24,10 @@ import br.com.manutencao.central_manutencao.common.ResourceNotFoundException;
 import br.com.manutencao.central_manutencao.equipment.Equipment;
 import br.com.manutencao.central_manutencao.equipment.EquipmentService;
 
+/**
+ * Testa as regras do MaintenancePlanService com o repositório simulado: última manutenção padrão,
+ * limites, edição, desativação e reativação.
+ */
 @ExtendWith(MockitoExtension.class)
 class MaintenancePlanServiceTest {
 

@@ -20,6 +20,10 @@ import br.com.manutencao.central_manutencao.common.BusinessRuleException;
 import br.com.manutencao.central_manutencao.equipment.Equipment;
 import br.com.manutencao.central_manutencao.equipment.EquipmentService;
 
+/**
+ * Testa as regras de leitura com o repositório simulado: a leitura atualiza o horímetro e nunca
+ * pode ser menor que o atual.
+ */
 @ExtendWith(MockitoExtension.class)
 class HourMeterReadingServiceTest {
 
@@ -60,6 +64,7 @@ class HourMeterReadingServiceTest {
         assertEquals(equipment, saved.getEquipment());
     }
 
+    // Limite da regra "o horímetro só anda para frente": igual ao atual é aceito
     @Test
     void registerAcceptsReadingEqualToCurrentHours() {
         when(equipmentService.findById(1L)).thenReturn(equipment);

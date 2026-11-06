@@ -1,3 +1,6 @@
+/**
+ * Estado de autenticação: usuário, papéis e o header Basic, guardados só em memória, com as funções login e logout.
+ */
 import { reactive } from 'vue'
 import { api } from '../api/client'
 
@@ -9,10 +12,12 @@ export const auth = reactive({
   roles: [],
   header: null,
 
+  // Há alguém logado
   get isLoggedIn() {
     return this.username !== null
   },
 
+  // Só ADMIN vê os formulários de escrita (o backend também exige o papel)
   get isAdmin() {
     return this.roles.includes('ADMIN')
   },
@@ -34,6 +39,7 @@ export async function login(username, password) {
   auth.roles = me.roles
 }
 
+// Apaga as credenciais da memória; o router reage e leva para a tela de login
 export function logout() {
   auth.header = null
   auth.username = null

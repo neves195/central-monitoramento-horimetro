@@ -22,6 +22,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import br.com.manutencao.central_manutencao.common.BusinessRuleException;
 import br.com.manutencao.central_manutencao.common.ResourceNotFoundException;
 
+/**
+ * Testa as regras do EquipmentService com o repositório simulado: código único, horímetro inicial,
+ * atualização, desativação e reativação.
+ */
 @ExtendWith(MockitoExtension.class)
 class EquipmentServiceTest {
 
@@ -174,6 +178,7 @@ class EquipmentServiceTest {
         assertTrue(service.reactivate(1L).isActive());
     }
 
+    // Reativar um equipamento que já está ativo é aceito e o deixa ativo
     @Test
     void reactivateKeepsActiveEquipmentActive() {
         Equipment current = equipment("ESC-001", "Escavadeira");

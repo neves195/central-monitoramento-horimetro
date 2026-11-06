@@ -1,3 +1,6 @@
+<!--
+  Estrutura da página: barra superior com navegação, usuário, papel e botão Sair (visível só logado) e a área onde cada tela é exibida.
+-->
 <script setup>
 import { auth, logout } from './stores/auth'
 </script>

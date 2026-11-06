@@ -1,3 +1,7 @@
+<!--
+  Cabeçalho comum das telas de um equipamento: código, nome, horímetro atual e abas Leituras, Planos e Manutenções.
+  Props: id (do equipamento, usado nos links das abas) e equipment (objeto já carregado pela tela, ou null enquanto carrega).
+-->
 <script setup>
 import { formatHours } from '../format'
 

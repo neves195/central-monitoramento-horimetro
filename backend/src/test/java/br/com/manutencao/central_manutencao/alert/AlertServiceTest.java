@@ -18,6 +18,10 @@ import br.com.manutencao.central_manutencao.plan.MaintenancePlan;
 import br.com.manutencao.central_manutencao.plan.MaintenancePlanRepository;
 import br.com.manutencao.central_manutencao.plan.PlanStatus;
 
+/**
+ * Testa o AlertService com o repositório simulado: ON_TIME fica fora, a ordem é do mais urgente
+ * para o menos urgente e o filtro por status funciona.
+ */
 @ExtendWith(MockitoExtension.class)
 class AlertServiceTest {
 

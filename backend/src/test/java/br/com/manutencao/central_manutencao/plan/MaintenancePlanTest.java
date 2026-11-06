@@ -9,7 +9,10 @@ import org.junit.jupiter.api.Test;
 
 import br.com.manutencao.central_manutencao.equipment.Equipment;
 
-// Plano de 250h, última manutenção em 1000h (vence em 1250h), aviso nas últimas 50h
+/**
+ * Testa os cálculos da entidade MaintenancePlan (vencimento, restante e status), sem Spring nem banco.
+ * Cenário: plano de 250h, última manutenção em 1000h (vence em 1250h), aviso nas últimas 50h.
+ */
 class MaintenancePlanTest {
 
     private Equipment equipment;
@@ -50,6 +53,7 @@ class MaintenancePlanTest {
         assertEquals(PlanStatus.ON_TIME, plan.status());
     }
 
+    // Limite exato da faixa de aviso: restante igual ao aviso já é UPCOMING
     @Test
     void statusIsUpcomingWhenRemainingEqualsWarning() {
         currentHours("1200.0");
@@ -64,6 +68,7 @@ class MaintenancePlanTest {
         assertEquals(PlanStatus.UPCOMING, plan.status());
     }
 
+    // Limite exato do vencimento: restante zero já é OVERDUE
     @Test
     void statusIsOverdueWhenRemainingIsZero() {
         currentHours("1250.0");

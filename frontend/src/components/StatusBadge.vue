@@ -1,3 +1,6 @@
+<!--
+  Selo colorido para o status de um plano (OVERDUE, UPCOMING, ON_TIME) ou de uma manutenção (SCHEDULED, COMPLETED, CANCELED).
+-->
 <script setup>
 import { computed } from 'vue'
 

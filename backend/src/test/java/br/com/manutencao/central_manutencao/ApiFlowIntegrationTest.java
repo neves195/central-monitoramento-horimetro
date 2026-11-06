@@ -31,6 +31,11 @@ import com.jayway.jsonpath.JsonPath;
  * Roda dentro de uma transação desfeita ao fim de cada teste, então um teste não enxerga o outro.
  * O usuário vem de @WithMockUser: a autenticação de verdade é coberta pelo SecurityIntegrationTest.
  */
+/**
+ * Fluxos completos da API com MockMvc e banco real (H2): cadastro de equipamento, leituras, planos,
+ * manutenções e alertas, incluindo os códigos de erro 400 e 409. Cada teste desfaz o que gravou
+ * (@Transactional) e roda como ADMIN; as regras de papel ficam no SecurityIntegrationTest.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -131,6 +136,8 @@ class ApiFlowIntegrationTest {
                 .andExpect(jsonPath("$.status").value("ON_TIME"));
     }
 
+    // Plano de 100h com aviso de 10h: 95h cai na faixa de aviso e 100h é o vencimento.
+    // O status muda só com a leitura, sem ninguém atualizar o plano
     @Test
     void planStatusFollowsReadingsWithoutBeingSaved() throws Exception {
         long equipmentId = createEquipment("INT-006");
@@ -145,6 +152,8 @@ class ApiFlowIntegrationTest {
 
     // ---- manutenção + alerta ----
 
+    // Fluxo principal do sistema: plano vencido gera alerta; concluir a manutenção reinicia a
+    // contagem do plano e o alerta some; depois de concluída, não dá mais para cancelar (409)
     @Test
     void completingMaintenanceResetsPlanAndClearsAlert() throws Exception {
         long equipmentId = createEquipment("INT-007");
@@ -176,6 +185,7 @@ class ApiFlowIntegrationTest {
                 .andExpect(status().isConflict());
     }
 
+    // Cancelar não é fazer: a contagem do plano continua de onde estava
     @Test
     void canceledMaintenanceDoesNotChangePlan() throws Exception {
         long equipmentId = createEquipment("INT-008");

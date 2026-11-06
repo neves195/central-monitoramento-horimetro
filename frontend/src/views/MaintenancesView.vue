@@ -1,3 +1,6 @@
+<!--
+  Manutenções de um equipamento: histórico, agendamento (com plano ou avulsa) e, para ADMIN, conclusão e cancelamento.
+-->
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
@@ -33,6 +36,7 @@ const actionError = ref('')
 
 const planNames = computed(() => new Map(plans.value.map((plan) => [plan.id, plan.name])))
 
+// Nome do plano da manutenção, ou "Avulsa, sem plano"
 function planLabel(maintenance) {
   if (maintenance.planId === null) {
     return 'Avulsa, sem plano'
@@ -40,6 +44,7 @@ function planLabel(maintenance) {
   return planNames.value.get(maintenance.planId) ?? `Plano ${maintenance.planId}`
 }
 
+// Busca equipamento, planos e manutenções ao mesmo tempo
 async function load() {
   try {
     const [equipmentData, plansData, maintenancesData] = await Promise.all([
@@ -57,6 +62,7 @@ async function load() {
   }
 }
 
+// Agenda uma manutenção e recarrega a lista
 async function schedule() {
   formError.value = ''
   sending.value = true
@@ -81,6 +87,7 @@ async function schedule() {
   }
 }
 
+// Abre o formulário de conclusão da manutenção, já com a data de hoje
 function openCompletion(maintenance) {
   actionError.value = ''
   completing.value = maintenance.id
@@ -89,6 +96,7 @@ function openCompletion(maintenance) {
   completion.responsible = maintenance.responsible ?? ''
 }
 
+// Conclui a manutenção; se houver plano, o backend zera a contagem dele
 async function complete(maintenance) {
   actionError.value = ''
   sending.value = true
@@ -111,6 +119,7 @@ async function complete(maintenance) {
   }
 }
 
+// Cancela a manutenção depois de pedir confirmação
 async function cancel(maintenance) {
   if (!window.confirm(`Cancelar a manutenção "${maintenance.description}"?`)) {
     return
@@ -127,6 +136,7 @@ async function cancel(maintenance) {
   }
 }
 
+// Carrega os dados ao abrir a tela
 onMounted(load)
 </script>
 
