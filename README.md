@@ -283,6 +283,22 @@ cd frontend
 npm run build
 ```
 
+## Uso de IA
+
+Este projeto foi desenvolvido com apoio de ferramentas de IA (Claude, da Anthropic),
+conforme permitido no enunciado do desafio. Os commits em que o Claude Code escreveu
+código trazem a linha `Co-Authored-By`, para deixar isso visível no histórico.
+
+- **Escrito por mim, com a IA como tutora (conceitos, pistas e revisão):** o esquema do
+  banco e a migration V1, a entidade `Equipment`, o `EquipmentRepository`, o
+  `EquipmentService` e a base da configuração de segurança (BCrypt e usuários).
+- **Gerado pelo Claude Code e revisado por mim:** DTOs, controllers e tratamento de
+  erros, os módulos de leituras, planos, manutenções e alertas, os testes automatizados,
+  o frontend Vue, os dados de exemplo, os comentários do código e a documentação.
+- As regras de negócio (status calculado, leitura nunca menor que o horímetro atual,
+  exclusão lógica, HTTP Basic com papéis) foram discutidas e decididas por mim, e estou
+  preparado para explicar e evoluir qualquer parte do código.
+
 ## Limitações conhecidas
 
 - O banco é em memória, então os dados somem a cada reinício.
