@@ -56,6 +56,62 @@ As senhas ficam em `application.properties` só porque este é um ambiente de de
 
 Abra <http://localhost:8080/h2-console> com a URL JDBC `jdbc:h2:mem:manutencao`, usuário `sa` e senha vazia. Sem o perfil `dev`, o console não fica liberado.
 
+## Estrutura do projeto
+
+```text
+.
+├── README.md
+├── backend/                           API em Spring Boot
+│   ├── pom.xml
+│   ├── mvnw, mvnw.cmd                 Maven Wrapper
+│   └── src/
+│       ├── main/
+│       │   ├── java/br/com/manutencao/central_manutencao/
+│       │   │   ├── CentralManutencaoApplication.java
+│       │   │   ├── equipment/
+│       │   │   ├── reading/
+│       │   │   ├── plan/
+│       │   │   ├── maintenance/
+│       │   │   ├── alert/
+│       │   │   ├── security/
+│       │   │   └── common/
+│       │   └── resources/
+│       │       ├── application.properties
+│       │       └── db/migration/      V1 (esquema) e V2 (dados de exemplo)
+│       └── test/                      testes, com a mesma divisão de pacotes
+└── frontend/                          Vue 3 + Vite
+    ├── index.html
+    ├── vite.config.js                 plugin do Vue e proxy de /api
+    ├── public/                        arquivos estáticos (favicon)
+    └── src/
+        ├── main.js, App.vue, router.js
+        ├── api/
+        ├── components/
+        ├── stores/
+        ├── views/
+        ├── format.js
+        └── styles.css
+```
+
+Cada pacote do backend agrupa controller, service, repository, entidade e os records de request e response de um assunto. O controller só traduz HTTP, e as regras de negócio ficam no service.
+
+| Pacote | Papel |
+|---|---|
+| `equipment` | Equipamentos monitorados: cadastro, código único, horímetro atual e exclusão lógica |
+| `reading` | Leituras do horímetro: histórico imutável que atualiza o horímetro do equipamento |
+| `plan` | Planos de manutenção preventiva (a cada N horas) e o cálculo de vencimento, restante e status |
+| `maintenance` | Manutenções agendadas, concluídas ou canceladas; concluir zera a contagem do plano |
+| `alert` | Painel de alertas: planos vencidos e próximos, calculados na hora, sem tabela própria |
+| `security` | HTTP Basic, papéis ADMIN e VIEWER, rota `/api/me` e os erros 401 e 403 em JSON |
+| `common` | Exceções de negócio (404 e 409) e o `GlobalExceptionHandler`, que define o formato único de erro |
+
+| Pasta do frontend | Papel |
+|---|---|
+| `api/` | Cliente HTTP que injeta as credenciais e converte erros da API em `ApiError` |
+| `components/` | Peças reutilizáveis: cabeçalho do equipamento e selo de status |
+| `stores/` | Estado de autenticação, só em memória |
+| `views/` | Uma tela por rota: login, alertas, equipamentos, leituras, planos e manutenções |
+
 ## Rotas da API
 
 Todas as rotas exigem HTTP Basic. `GET` aceita ADMIN e VIEWER; `POST`, `PUT` e `DELETE` são só de ADMIN.
@@ -232,7 +288,7 @@ npm run build
 - O banco é em memória, então os dados somem a cada reinício.
 - Os usuários são fixos e ficam em memória, com senhas no `application.properties`. Em produção viriam de variáveis de ambiente e de uma tabela.
 - O HTTP Basic só é aceitável com HTTPS, que não está configurado aqui.
-- A migration V2 roda em qualquer ambiente; veja o passo 3 da troca para PostgreSQL.
+- A migration V2 roda em qualquer ambiente; veja o item 3 da troca para PostgreSQL.
 - O frontend cadastra equipamentos e planos, mas não os edita, desativa nem reativa. Essas operações existem só na API.
 - A API não lista equipamentos nem planos desativados, então é preciso saber o id para reativá-los.
 - JSON malformado, parâmetro de enum inválido e rota inexistente respondem com o status certo, mas no formato padrão do Spring, não no formato único de erro.
